@@ -197,7 +197,7 @@ if(FB){firebase.initializeApp(window.FIREBASE_CONFIG);auth=firebase.auth();db=fi
     render();});
 }
 function cloudSave(){if(!user||!cloudReady)return;clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>{const data=JSON.parse(JSON.stringify({mine:S.mine,matches:S.matches}));data.updated=firebase.firestore.FieldValue.serverTimestamp();
+  const uid=user.uid;saveTimer=setTimeout(()=>{if(!user||user.uid!==uid)return;const data=JSON.parse(JSON.stringify({mine:S.mine,matches:S.matches}));data.updated=firebase.firestore.FieldValue.serverTimestamp();
     db.collection("users").doc(user.uid).set(data).then(()=>{sync="Saved to your account";paintSync()}).catch(()=>{sync="Couldn’t save to your account. Check your connection.";paintSync()})},700)}
 function paintSync(){const el=document.getElementById("sync");if(el)el.textContent=sync}
 function authBar(){if(!FB)return"";
@@ -333,7 +333,7 @@ app.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)re
   if(a==="signin"){sync="";auth.signInWithPopup(provider).catch(err=>{
     if(["auth/popup-blocked","auth/operation-not-supported-in-this-environment","auth/cancelled-popup-request"].includes(err.code))return auth.signInWithRedirect(provider);
     if(err.code!=="auth/popup-closed-by-user"){sync="Sign-in didn’t work. Try again, or open the site in Chrome or Safari.";render()}});return}
-  if(a==="signout"){auth.signOut().then(()=>{S=seed();sync="";try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()});return}
+  if(a==="signout"){clearTimeout(saveTimer);auth.signOut().then(()=>{S=seed();sync="";try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()});return}
   if(a==="home")return go("home");
   if(a==="mine")return go("mine");
   if(a==="new"){go("name");document.getElementById("nm").focus();return}
