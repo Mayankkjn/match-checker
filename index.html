@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Check a prospective match against what you are looking for and what you bring.">
+<title>Compatibility Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+
+/* Layout: single phone-width column; home list → one-question-at-a-time check → result */
+:root{
+  --bg:#F5F3F8; --surface:#FFFFFF; --ink:#1E1B2E; --muted:#68637C; --line:#E0DCE9;
+  --accent:#3B2F8F; --accent-soft:#ECE9FA; --mari:#D98E0B; --mari-soft:#FDF1DA;
+  --good:#2D7A4E; --good-soft:#E3F2E8; --warn:#A86A12; --warn-soft:#FBEFD9; --bad:#B23A3E; --bad-soft:#F8E3E3; --unk:#9A95AC; --unk-soft:#EEECF3;
+  --display:"Gloock",Georgia,"Times New Roman",serif; --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14121D; --surface:#1E1B2B; --ink:#ECE9F5; --muted:#A39DBA; --line:#332F47;
+  --accent:#AFA3FF; --accent-soft:#2A2547; --mari:#F2B441; --mari-soft:#3A2E14;
+  --good:#6BC891; --good-soft:#1C3326; --warn:#E9B25A; --warn-soft:#3A2D16; --bad:#F08A8D; --bad-soft:#3D2022; --unk:#7F7996; --unk-soft:#2A2738; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14121D; --surface:#1E1B2B; --ink:#ECE9F5; --muted:#A39DBA; --line:#332F47;
+  --accent:#AFA3FF; --accent-soft:#2A2547; --mari:#F2B441; --mari-soft:#3A2E14;
+  --good:#6BC891; --good-soft:#1C3326; --warn:#E9B25A; --warn-soft:#3A2D16; --bad:#F08A8D; --bad-soft:#3D2022; --unk:#7F7996; --unk-soft:#2A2738; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+#app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font:400 32px/1.1 var(--display);margin:0;text-wrap:balance}
+h1 em{font-style:normal;color:var(--mari)}
+h2{font:400 26px/1.2 var(--display);margin:0;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button{font-family:var(--body);cursor:pointer}
+:focus-visible{outline:2px solid var(--mari);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:15px;padding:12px 16px;border-radius:12px;text-align:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.block{width:100%}
+.btn.link{border:0;background:none;padding:6px 0;color:var(--accent);text-align:left}
+.btn.danger{color:var(--bad)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.match{display:flex;align-items:center;gap:14px;text-align:left;width:100%;font:inherit;color:inherit}
+.ring{flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font:400 18px var(--display);font-variant-numeric:tabular-nums;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--unk-soft) 0)}
+.ring span{width:46px;height:46px;border-radius:50%;background:var(--surface);display:grid;place-items:center}
+.match .nm{font:400 20px/1.2 var(--display)}
+.tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--unk-soft);color:var(--muted);padding:2px 8px;border-radius:99px;vertical-align:3px;margin-left:6px}
+.mine{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;width:100%;font:inherit;color:inherit}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.prog{height:6px;border-radius:99px;background:var(--unk-soft);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent)}
+.box{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.box.want{background:var(--accent-soft)}
+.box.bring{background:var(--mari-soft)}
+.box p{white-space:pre-line}
+.answers{display:flex;flex-direction:column;gap:8px}
+.ans{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:14px 16px;font-size:16px;font-weight:600;text-align:left}
+.ans .dot{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none}
+.ans[aria-pressed="true"]{border-color:var(--c);background:var(--s)}
+textarea,input[type=text]{width:100%;font:16px/1.45 var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical}
+textarea{field-sizing:content;min-height:2.8em}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.big{font:400 56px/1 var(--display);font-variant-numeric:tabular-nums}
+.big small{font-size:24px;color:var(--muted)}
+.counts{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.counts span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--c)}
+.group{display:flex;flex-direction:column;gap:2px}
+.group h3{font-size:14px;font-weight:700;margin:0 0 4px;color:var(--c)}
+.item{display:flex;justify-content:space-between;gap:10px;border:0;background:none;color:var(--ink);font:inherit;text-align:left;padding:8px 0;border-top:1px solid var(--line)}
+.item small{color:var(--muted);flex:none}
+.area{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.area:first-of-type{border-top:0;padding-top:0}
+.area b{font-size:15px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bad-soft);padding:12px;border-radius:12px}
+.principle{font:400 17px/1.45 var(--display);color:var(--muted);border-left:3px solid var(--mari);padding-left:14px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-size:14px;font-weight:500;padding:8px 14px;border-radius:99px;line-height:1.25;text-align:left}
+.pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.pill[aria-pressed="true"]::before{content:"✓ "}
+.pill.other{border-style:dashed;color:var(--muted)}
+.pill.other[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.pill.other[aria-pressed="true"]::before{content:""}
+.side{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.want-l{color:var(--accent)} .bring-l{color:var(--warn)}
+.okmark{color:var(--good);font-size:14px}
+.area{gap:8px;padding-top:16px}
+.ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:2px}
+.mine .prog{max-width:240px}
+</style>
+
+</head>
+<body>
+<main id="app"></main>
+
+<script>
+/* 22 areas from the assessment. Nothing is pre-selected; each visitor makes their own picks. */
+const GROUPS=[
+["Physical",[
+ ["Smoking",["Non-smoker","Occasional is okay","Doesn’t matter"],["Non-smoker","Occasional smoker","Smoker"]],
+ ["Height",["5’8” or taller","5’10” or taller","6’ or taller","Doesn’t matter"],["Under 5’","5’–5’3”","5’4”–5’6”","5’7” or taller"]],
+ ["Fitness and health habits",["Works out or willing to start","Healthy, sustainable lifestyle","Eats healthy","Active outdoors"],["Will build a healthy routine together","Work out regularly","Eat healthy","Active lifestyle"]],
+ ["Mutual attraction",["Mutual physical attraction","Takes care of appearance","Good sense of style"],["Take care of my appearance","Good sense of style","Well-groomed"]]]],
+["Personality",[
+ ["Intelligence and ambition",["Intelligent and thoughtful","Meaningful conversations","Has goals, wants to grow","Curious","Well-read"],["Willing to learn where needed","Curious","Career-driven","Good conversationalist","Well-read"]],
+ ["Kindness and maturity",["Kind, respectful, considerate","Handles tough situations maturely","Honest and consistent","Patient","Good sense of humour"],["Loyal, honest, trustworthy","Kind and caring","Patient","Calm under pressure","Good sense of humour"]],
+ ["Independence and decision-making",["Manages his life independently","Makes his own decisions","Financially independent"],["Take responsibility","Financially independent","Make my own decisions"]]]],
+["Career and finances",[
+ ["Career compatibility",["Supports my career growth","Open to talk about relocation","Stable career","Ambitious"],["Support his growth and decisions","Adapt and contribute","Stable career","Ambitious"]],
+ ["Financial transparency",["Open about finances","Fair split of expenses","No hidden debts","Clear about family commitments"],["Honest about finances","Contribute in a way that works for us","No hidden debts"]],
+ ["Shared financial goals",["Plans shared goals together","Fair plan for supporting parents","Saves and invests","Sensible spender"],["Shared financial and life goals","Fulfil family responsibilities","Save and invest","Sensible spender"]]]],
+["Emotional",[
+ ["Loyalty and trust",["Faithful and committed","Trusts me","Behaves consistently"],["Loyal and committed","Trust and believe in my partner","Consistent"]],
+ ["Affection and emotional support",["Expresses love and affection","Emotionally present","Supports me in hard phases","Makes time for us","Appreciates me"],["Affectionate","Emotionally available","Support him in every way","Make time for us"]],
+ ["Communication and conflict resolution",["Open, honest, respectful","Resolves disagreements constructively","Shares feelings openly","Good listener"],["Honest and open","Work through challenges together","Good listener","Share feelings openly"]]]],
+["Family and freedom",[
+ ["Open-minded family",["Open-minded family","Compatible values","No rigid daughter-in-law expectations","Modern outlook"],["Understand and fulfil responsibilities","Respect their traditions","Open-minded"]],
+ ["Healthy boundaries with in-laws",["Close to parents, with boundaries","Stands up for fairness","No automatic adjustment expected","Respects our privacy"],["Navigate family matters together","Respect his family","Protect our privacy"]],
+ ["Personal freedom and living arrangements",["Freedom to make my own choices","Open to discuss living arrangement","I’m an equal at home","Open to living independently","Open to living with family"],["Respect his individuality","Adapt to what works for us","Open to living with family","Prefer living independently"]]]],
+["Home and responsibilities",[
+ ["Fair division of household work",["Shares chores fairly","Shares the mental load","Doesn’t assume it’s the woman’s job","Takes ownership without being asked","Can cook"],["Contribute in whatever way works","Can cook","Organised","Manage the home together"]],
+ ["Shared family duties",["Shares care of ageing parents","Respects my family","Supports my parents too"],["Responsibilities to both families","Care for family","Stay close to his family"]],
+ ["Mutual adjustment",["Both partners compromise","Partnership, not hierarchy","Flexible"],["Willing to adjust and learn","Team player","Flexible"]]]],
+["Future",[
+ ["Children and parenting",["Equal partnership in parenting","Wants children","Open to children","Doesn’t want children","Open to adoption"],["Want children","Open to children","Don’t want children","Open to adoption","Equal parenting"]],
+ ["Location and lifestyle",["Settles somewhere convenient for both","Open to near my workplace","Decides location together","Open to moving cities","Open to moving abroad"],["Plan together","Open to moving cities","Open to moving abroad"]],
+ ["Shared long-term goals",["Build a life together","Grow together through every stage","Loves to travel","Plans to own a home"],["Build a life together","Loyalty, commitment, teamwork","Love to travel","Plan to own a home"]]]]
+];
+const clean=o=>o.replace(/^\*/,"");
+const AREAS=[];GROUPS.forEach(g=>g[1].forEach(a=>AREAS.push({group:g[0],name:a[0],w:a[1].map(clean),b:a[2].map(clean),dw:a[1].filter(o=>o[0]==="").map(clean),db:a[2].filter(o=>o[0]==="").map(clean)})));
+const N=AREAS.length;
+const OPT={y:["Yes, matches","var(--good)","var(--good-soft)"],t:["Need to talk","var(--warn)","var(--warn-soft)"],n:["Doesn’t match","var(--bad)","var(--bad-soft)"],u:["Don’t know yet","var(--unk)","var(--unk-soft)"]};
+const KEY="compat-ledger-v4";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const freshMine=()=>AREAS.map(a=>({w:[...a.dw],wo:"",b:[...a.db],bo:""}));
+function seed(){return {mine:freshMine(),view:"home",
+  matches:[{id:"ex",example:true,name:"Sample match",a:{0:"y",1:"y",2:"t",4:"y",5:"y",7:"t",10:"y",12:"t",13:"n",14:"t"},notes:{13:"Parents expect joint family living"}}]}}
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!Array.isArray(S.mine)||S.mine.length!==N||!Array.isArray(S.matches)){S=seed();
+  try{const old=JSON.parse(localStorage.getItem("compat-ledger-v3"));if(old&&Array.isArray(old.matches))S.matches=old.matches}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const app=document.getElementById("app");
+const cur=()=>S.matches.find(m=>m.id===S.cur);
+const side=(i,s)=>{const m=S.mine[i];return [...m[s],...(m[s+"o"].trim()?[m[s+"o"].trim()]:[])]};
+const filled=i=>side(i,"w").length&&side(i,"b").length;
+
+function tally(m){const t={y:0,t:0,n:0,u:0};for(let i=0;i<N;i++)t[m.a[i]||"u"]++;const k=t.y+t.t+t.n;return {...t,known:k,score:k?Math.round((t.y+t.t*.5)/k*100):null}}
+function verdict(t){if(!t.known)return "Not checked yet";if(t.n)return t.n===1?"1 thing doesn’t match":t.n+" things don’t match";if(t.score>=80)return "Looking good so far";return "A few things to talk about"}
+const color=t=>!t.known?"var(--unk)":t.n?"var(--bad)":t.score>=80?"var(--good)":"var(--warn)";
+
+function go(v){S.view=v;save();render();window.scrollTo(0,0)}
+function render(){app.innerHTML=({home,mine,name,check,result})[S.view]()}
+
+function home(){const f=AREAS.filter((a,i)=>filled(i)).length;
+  return `<header style="display:flex;flex-direction:column;gap:6px"><h1>Compatibility <em>Ledger</em></h1>
+  <p class="muted">Check each match against the ${N} things that matter to you, one question at a time.</p></header>
+  <button class="btn primary block" data-act="new">Check a new match</button>
+  ${S.matches.length?`<span class="label">Your matches</span>`+S.matches.map(m=>{const t=tally(m);
+    return `<button class="card match" data-act="open" data-id="${m.id}"><span class="ring" style="--p:${t.score??0};--c:${color(t)}"><span>${t.score??"–"}</span></span>
+    <span style="min-width:0;display:flex;flex-direction:column;gap:2px"><span class="nm">${esc(m.name)}${m.example?'<span class="tag">Example</span>':""}</span>
+    <span class="small" style="color:${color(t)};font-weight:600">${verdict(t)}</span><span class="small muted">${t.known} of ${N} checked</span></span></button>`}).join("")
+   :`<p class="muted small">No matches yet. Tap the button above to check your first one.</p>`}
+  <span class="label" style="margin-top:8px">About me</span>
+  <button class="card mine" data-act="mine"><span style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1"><b>My expectations and what I bring</b>
+  <span class="small muted">${f} of ${N} areas have both sides filled. Tap to pick options.</span><span class="prog"><i style="width:${f/N*100}%"></i></span></span><span aria-hidden="true" class="muted">›</span></button>`;
+}
+
+function pills(i,s){const a=AREAS[i],m=S.mine[i],opts=s==="w"?a.w:a.b,open=m[s+"open"]||m[s+"o"];
+  return `<div class="pills">${opts.map((o,j)=>`<button class="pill" data-act="pill" data-i="${i}" data-s="${s}" data-j="${j}" aria-pressed="${m[s].includes(o)}">${esc(o)}</button>`).join("")}
+  <button class="pill other" data-act="other" data-i="${i}" data-s="${s}" aria-pressed="${!!open}">+ Other</button></div>
+  ${open?`<input type="text" id="${s}o${i}" data-otxt="${s}" data-i="${i}" value="${esc(m[s+"o"])}" placeholder="Write your own">`:""}`;
+}
+
+function mine(){const f=AREAS.filter((a,i)=>filled(i)).length;
+  let h=`<div class="top"><button class="btn link" data-act="home">‹ Back</button><span class="small muted">${f} of ${N} filled</span></div>
+  <h2>About me</h2><p class="muted small">Tap every option that fits. Choose “+ Other” to write your own. Changes save automatically.</p>`;
+  GROUPS.forEach(g=>{h+=`<div class="card"><span class="label">${esc(g[0])}</span>`;
+    AREAS.forEach((a,i)=>{if(a.group!==g[0])return;
+      h+=`<div class="area" id="area${i}"><b>${esc(a.name)}${filled(i)?' <span class="okmark">✓</span>':""}</b>
+      <span class="side want-l">I’m looking for</span>${pills(i,"w")}
+      <span class="side bring-l">I bring</span>${pills(i,"b")}</div>`});
+    h+=`</div>`});
+  return h+`<button class="btn link" data-act="resetmine">Clear all my picks</button>
+  <p class="principle">You don’t need identical strengths. You should both feel respected, supported, and free to be yourselves.</p>`;
+}
+
+function name(){
+  return `<div class="top"><button class="btn link" data-act="home">‹ Cancel</button></div>
+  <h2>Who are you checking?</h2><input type="text" id="nm" placeholder="Name" autocomplete="off">
+  <button class="btn primary block" data-act="start">Start · ${N} quick questions</button>
+  <p class="muted small">Answer based on what you know, not what you hope. Choose “Don’t know yet” whenever you’re unsure.</p>`;
+}
+
+const asList=arr=>arr.length?`<ul class="ul">${arr.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<p class="muted">Nothing picked yet</p>';
+function check(){const m=cur(),i=S.step,a=AREAS[i],v=m.a[i],bring=side(i,"b");
+  return `<div class="top"><button class="btn link" data-act="${i?"prev":"result"}">‹ ${i?"Previous":"Back"}</button><span class="small muted">${esc(m.name)} · ${i+1} of ${N}</span><button class="btn link" data-act="result" style="text-align:right">Done</button></div>
+  <div class="prog"><i style="width:${(i+1)/N*100}%"></i></div>
+  <span class="label">${esc(a.group)}</span><h2>${esc(a.name)}</h2>
+  <div class="box want"><span class="label">You want</span>${asList(side(i,"w"))}</div>
+  ${bring.length?`<div class="box bring"><span class="label">You bring</span>${asList(bring)}</div>`:""}
+  <p style="font-weight:600;margin-top:4px">Does ${esc(m.name)} match?</p>
+  <div class="answers">${Object.keys(OPT).map(k=>`<button class="ans" data-act="ans" data-v="${k}" aria-pressed="${v===k}" style="--c:${OPT[k][1]};--s:${OPT[k][2]}"><span class="dot"></span>${OPT[k][0]}</button>`).join("")}</div>
+  <label class="small muted" for="note">Note (optional)</label><textarea id="note" data-note="${i}" placeholder="What he or his family said">${esc(m.notes?.[i]||"")}</textarea>`;
+}
+
+function result(){const m=cur(),t=tally(m);
+  const list=(k,title)=>{const it=AREAS.map((a,i)=>({a,i})).filter(o=>(m.a[o.i]||"u")===k);if(!it.length)return"";
+    return `<div class="group" style="--c:${OPT[k][1]}"><h3>${title} (${it.length})</h3>${it.map(o=>`<button class="item" data-act="jump" data-i="${o.i}"><span>${esc(o.a.name)}${m.notes?.[o.i]?`<br><span class="small muted">${esc(m.notes[o.i])}</span>`:""}</span><small>Change</small></button>`).join("")}</div>`};
+  return `<div class="top"><button class="btn link" data-act="home">‹ All matches</button></div>
+  <div class="card"><span class="label">${esc(m.name)}${m.example?'<span class="tag">Example</span>':""}</span>
+  <div class="big">${t.score??"–"}${t.score!=null?"<small>%</small>":""}</div>
+  <p style="font-weight:600;color:${color(t)}">${verdict(t)}</p>
+  <div class="counts"><span style="--c:var(--good)">${t.y} match</span><span style="--c:var(--warn)">${t.t} to talk</span><span style="--c:var(--bad)">${t.n} don’t match</span><span style="--c:var(--unk)">${t.u} unknown</span></div>
+  <p class="small muted">The score counts only the ${t.known} ${t.known===1?"area":"areas"} you’ve answered.</p></div>
+  ${list("n","Doesn’t match")}${list("t","Talk about next")}${list("u","Don’t know yet")}${list("y","Matches")}
+  <button class="btn primary block" data-act="jump" data-i="${Math.max(0,AREAS.findIndex((a,i)=>!m.a[i]||m.a[i]==="u"))}">${t.u?"Continue answering":"Review answers"}</button>
+  ${S.del?`<div class="confirm"><span style="flex:1 1 160px">Delete ${esc(m.name)}?</span><button class="btn danger" data-act="delyes">Delete</button><button class="btn" data-act="delno">Cancel</button></div>`
+  :`<button class="btn link danger" data-act="del" style="color:var(--bad)">Delete this match</button>`}`;
+}
+
+function rerenderArea(i,focusId){const y=window.scrollY;render();window.scrollTo(0,y);if(focusId){const el=document.getElementById(focusId);el&&el.focus()}}
+app.addEventListener("input",e=>{const t=e.target;
+  if(t.dataset.otxt){S.mine[t.dataset.i][t.dataset.otxt+"o"]=t.value;const area=t.closest(".area"),ok=filled(+t.dataset.i);const b=area.querySelector("b");if(!!b.querySelector(".okmark")!==!!ok)b.innerHTML=esc(AREAS[t.dataset.i].name)+(ok?' <span class="okmark">✓</span>':"")}
+  else if(t.dataset.note){const m=cur();m.notes=m.notes||{};m.notes[t.dataset.note]=t.value}
+  save()});
+app.addEventListener("keydown",e=>{if(e.target.id==="nm"&&e.key==="Enter")app.querySelector('[data-act=start]').click()});
+app.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;S.del=false;
+  if(a==="pill"){const i=+b.dataset.i,s=b.dataset.s,o=(s==="w"?AREAS[i].w:AREAS[i].b)[+b.dataset.j],arr=S.mine[i][s];const k=arr.indexOf(o);k<0?arr.push(o):arr.splice(k,1);save();rerenderArea(i);return}
+  if(a==="other"){const i=+b.dataset.i,s=b.dataset.s,m=S.mine[i];if(m[s+"open"]||m[s+"o"]){m[s+"open"]=false;m[s+"o"]=""}else m[s+"open"]=true;save();rerenderArea(i,m[s+"open"]?s+"o"+i:null);return}
+  if(a==="resetmine"){if(b.dataset.armed){S.mine=freshMine();save();rerenderArea();return}b.dataset.armed="1";b.textContent="Tap again to clear all your picks";return}
+  if(a==="home")return go("home");
+  if(a==="mine")return go("mine");
+  if(a==="new"){go("name");document.getElementById("nm").focus();return}
+  if(a==="start"){const n=document.getElementById("nm").value.trim()||"Match "+(S.matches.length+1);const m={id:Math.random().toString(36).slice(2,9),name:n,a:{},notes:{}};S.matches.unshift(m);S.cur=m.id;S.step=0;return go("check")}
+  if(a==="open"){S.cur=b.dataset.id;return go("result")}
+  if(a==="result")return go("result");
+  if(a==="prev"){S.step--;return go("check")}
+  if(a==="jump"){S.step=+b.dataset.i;return go("check")}
+  if(a==="ans"){cur().a[S.step]=b.dataset.v;app.querySelectorAll(".ans").forEach(x=>x.setAttribute("aria-pressed",x===b));save();
+    setTimeout(()=>{if(S.step<N-1){S.step++;go("check")}else go("result")},220);return}
+  if(a==="del"){S.del=true;render();return}
+  if(a==="delno"){render();return}
+  if(a==="delyes"){S.matches=S.matches.filter(m=>m.id!==S.cur);return go("home")}
+});
+if(S.view!=="home"&&S.view!=="mine"&&!cur())S.view="home";
+render();
+</script>
+
+</body>
+</html>
