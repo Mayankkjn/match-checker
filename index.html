@@ -91,6 +91,34 @@ textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px;b
 .mine .prog{max-width:240px}
 .auth{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .gbtn{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;font-size:14px}
+body.is-landing #app{max-width:1040px;gap:48px}
+.lp-hero{display:flex;flex-direction:column;gap:18px;padding-block:16px 0;max-width:640px}
+.lp-mark{font:400 18px var(--display)} .lp-mark em{font-style:normal;color:var(--mari)}
+.lp-h{font:400 clamp(40px,9vw,72px)/1.02 var(--display);margin:0;letter-spacing:-.02em;text-wrap:balance}
+.lp-h em{font-style:normal;color:var(--accent)}
+.lp-sub{font-size:18px;color:var(--muted);max-width:52ch}
+.lp-ctas{display:flex;flex-wrap:wrap;gap:10px}
+.lp-g{display:inline-flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;font-size:16px}
+.gdot{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.lp-guest{font-size:16px}
+.lp-demo{display:flex;justify-content:flex-end}
+.lp-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:2px;box-shadow:0 24px 48px -28px rgba(30,27,46,.35);transform:rotate(-1.2deg)}
+.lp-card-top{display:flex;align-items:center;gap:14px;padding-bottom:12px}
+.lp-card .nm{font:400 20px var(--display)}
+.lp-line{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.lp-line .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.lp-sec{display:flex;flex-direction:column;gap:16px}
+.lp-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;counter-reset:s}
+.lp-steps li{counter-increment:s;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lp-steps li::before{content:counter(s);font:400 40px/1 var(--display);color:var(--mari)}
+.lp-steps b{font-size:17px} .lp-steps span{color:var(--muted)}
+.lp-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.lp-group{background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.lp-private p{font-size:17px;max-width:60ch}
+.lp-end{display:flex;flex-direction:column;gap:18px;align-items:flex-start;border-top:1px solid var(--line);padding-top:32px}
+.lp-quote{font:400 clamp(24px,5vw,34px)/1.2 var(--display);max-width:24ch;text-wrap:balance}
+@media (min-width:880px){body.is-landing #app{display:grid;grid-template-columns:1.1fr 1fr;column-gap:56px;row-gap:64px;align-items:center}
+  body.is-landing .lp-sec,body.is-landing .lp-end{grid-column:1/-1}}
 </style>
 
 </head>
@@ -151,11 +179,11 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}cloudS
 
 /* Google sign-in + cloud sync (Firebase). Without a config the app works on this device only. */
 const FB=!!(window.FIREBASE_CONFIG&&window.firebase);
-let auth,db,user=null,cloudReady=false,sync="",saveTimer;
+let auth,db,user=null,cloudReady=false,sync="",saveTimer,authKnown=!FB;
 const provider=FB?new firebase.auth.GoogleAuthProvider():null;
 if(FB){firebase.initializeApp(window.FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();
   auth.getRedirectResult().catch(()=>{});
-  auth.onAuthStateChanged(async u=>{user=u;cloudReady=false;
+  auth.onAuthStateChanged(async u=>{user=u;cloudReady=false;authKnown=true;
     if(u){sync="Loading your matches…";render();
       try{const snap=await db.collection("users").doc(u.uid).get();
         if(snap.exists){const d=snap.data();
@@ -186,7 +214,43 @@ function verdict(t){if(!t.known)return "Not checked yet";if(t.n)return t.n===1?"
 const color=t=>!t.known?"var(--unk)":t.n?"var(--bad)":t.score>=80?"var(--good)":"var(--warn)";
 
 function go(v){S.view=v;save();render();window.scrollTo(0,0)}
-function render(){app.innerHTML=({home,mine,name,check,result})[S.view]()}
+function render(){
+  const lp=!user&&!S.guest&&S.view==="home";
+  document.body.classList.toggle("is-landing",lp&&authKnown);
+  if(!authKnown){app.innerHTML=`<p class="muted" style="text-align:center;padding:40vh 0 0">Loading…</p>`;return}
+  app.innerHTML=lp?landing():({home,mine,name,check,result})[S.view]()}
+
+const GBTN=`<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>`;
+function ctas(){return `<div class="lp-ctas">${FB?`<button class="btn primary lp-g" data-act="signin"><span class="gdot">${GBTN}</span>Continue with Google</button>`:""}
+  <button class="btn lp-guest" data-act="guest">${FB?"Try it without signing in":"Get started"}</button></div>
+  ${sync?`<p class="small" style="color:var(--bad)">${esc(sync)}</p>`:""}`}
+function landing(){
+  const demo=[["Loyalty and trust","y"],["Fair division of household work","y"],["Healthy boundaries with in-laws","t"],["Personal freedom and living arrangements","n"],["Children and parenting","u"]];
+  return `<section class="lp-hero">
+    <span class="lp-mark">Compatibility <em>Ledger</em></span>
+    <h1 class="lp-h">Know what you want.<br>See who <em>matches</em>.</h1>
+    <p class="lp-sub">A private checklist for marriage conversations. Write down what you’re looking for and what you bring, then check each prospective match on the ${N} things that matter most.</p>
+    ${ctas()}
+  </section>
+  <section class="lp-demo" aria-label="Example result">
+    <div class="lp-card">
+      <div class="lp-card-top"><span class="ring" style="--p:72;--c:var(--warn)"><span>72</span></span>
+        <span><span class="nm">Example match</span><br><span class="small" style="color:var(--warn);font-weight:600">A few things to talk about</span></span></div>
+      ${demo.map(([n,k])=>`<div class="lp-line"><span class="dot" style="--c:${OPT[k][1]}"></span><span style="flex:1;min-width:0">${n}</span><span class="small" style="color:${OPT[k][1]};font-weight:600">${OPT[k][0]}</span></div>`).join("")}
+    </div>
+  </section>
+  <section class="lp-sec"><span class="label">How it works</span>
+    <ol class="lp-steps">
+      <li><b>Describe your side</b><span>Tap options for what you want in a partner and what you offer in return. Takes about five minutes.</span></li>
+      <li><b>Check a match</b><span>Answer one question at a time: matches, need to talk, doesn’t match, or don’t know yet.</span></li>
+      <li><b>See where you stand</b><span>Get a score, the concerns to raise, and what you still need to find out.</span></li>
+    </ol></section>
+  <section class="lp-sec"><span class="label">What you’ll check</span>
+    <div class="lp-groups">${GROUPS.map(g=>`<div class="lp-group"><b>${esc(g[0])}</b><span class="small muted">${g[1].map(a=>esc(a[0])).join(" · ")}</span></div>`).join("")}</div></section>
+  <section class="lp-sec lp-private"><span class="label">Private by design</span>
+    <p>Only you can see your answers. Signed in, they’re stored in your own account so you can come back from any device. Without signing in, they stay on this device and nothing is sent anywhere.</p></section>
+  <section class="lp-end"><p class="lp-quote">Rate each area on what you know, not what you hope will happen.</p>${ctas()}</section>`;
+}
 
 function home(){const f=AREAS.filter((a,i)=>filled(i)).length;
   return `${authBar()}<header style="display:flex;flex-direction:column;gap:6px"><h1>Compatibility <em>Ledger</em></h1>
@@ -265,6 +329,7 @@ app.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)re
   if(a==="pill"){const i=+b.dataset.i,s=b.dataset.s,o=(s==="w"?AREAS[i].w:AREAS[i].b)[+b.dataset.j],arr=S.mine[i][s];const k=arr.indexOf(o);k<0?arr.push(o):arr.splice(k,1);save();rerenderArea(i);return}
   if(a==="other"){const i=+b.dataset.i,s=b.dataset.s,m=S.mine[i];if(m[s+"open"]||m[s+"o"]){m[s+"open"]=false;m[s+"o"]=""}else m[s+"open"]=true;save();rerenderArea(i,m[s+"open"]?s+"o"+i:null);return}
   if(a==="resetmine"){if(b.dataset.armed){S.mine=freshMine();save();rerenderArea();return}b.dataset.armed="1";b.textContent="Tap again to clear all your picks";return}
+  if(a==="guest"){S.guest=true;return go("home")}
   if(a==="signin"){sync="";auth.signInWithPopup(provider).catch(err=>{
     if(["auth/popup-blocked","auth/operation-not-supported-in-this-environment","auth/cancelled-popup-request"].includes(err.code))return auth.signInWithRedirect(provider);
     if(err.code!=="auth/popup-closed-by-user"){sync="Sign-in didn’t work. Try again, or open the site in Chrome or Safari.";render()}});return}
