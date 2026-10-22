@@ -181,6 +181,43 @@ textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px;b
 .lp-group{display:flex;gap:14px;align-items:flex-start}
 .lp-group>div{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lp-end{display:flex;flex-direction:column;gap:20px;align-items:flex-start;border-top:1px solid var(--line);padding-top:40px}
+
+/* home (matches) */
+.hm-h{font-size:40px;line-height:48px}
+@media (min-width:768px){.hm-h{font-size:48px;line-height:56px}}
+.hm-h2{font-size:30px;line-height:38px}
+.hm-sync{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.hm-sync .hm-lock .ico{width:24px;height:24px;color:var(--ink)}
+.hm-sync>div{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.hm-sync b{font:500 15px/22px var(--body)} .hm-sync span{font-size:14px;color:var(--muted)}
+.hm-pill{white-space:nowrap;flex:none;padding-inline:14px;border-radius:999px;border-color:var(--accent);color:var(--accent);background:var(--surface);gap:4px}
+.hm-cta{min-height:56px;font-size:17px;border-radius:14px}
+.hm-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.hm-top{display:flex;align-items:center;gap:16px;padding:24px 24px 8px}
+.hm-name{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.hm-name h2{font-size:30px;line-height:38px}
+.hm-name p{color:var(--muted)}
+.hm-ring{--p:0;flex:none;width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--sand) 0)}
+.hm-ring>span{width:90px;height:90px;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.hm-ring b{font:600 22px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.hm-ring small{font-size:12px;color:var(--muted)}
+.hm-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:16px 8px 20px}
+.hm-stat{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:0 6px;border-left:1px solid var(--line)}
+.hm-stat:first-child{border-left:0}
+.hm-stat b{font:500 24px/32px var(--body);font-variant-numeric:tabular-nums}
+.hm-stat:first-child b{color:var(--accent)}
+.hm-stat span{font-size:14px;line-height:19px;color:var(--muted)}
+.hm-foot{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:56px;border:0;border-top:1px solid var(--line);background:var(--bg);color:var(--accent);font:600 16px var(--body);padding:14px 24px;text-align:left;transition:background-color .18s}
+.hm-foot:hover{background:var(--sand)}
+.hm-foot-plain{background:none;margin:0 24px;width:auto;padding:16px 0}
+.hm-foot-plain:hover{background:none;text-decoration:underline}
+.hm-prof{display:flex;gap:18px;align-items:center;padding:24px 24px 20px}
+.hm-av{width:64px;height:64px;border-radius:50%;background:var(--sage);color:var(--accent);display:grid;place-items:center;flex:none}
+.hm-av .ico{width:26px;height:26px}
+.hm-prof>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.hm-prof h3{font:500 22px/30px var(--display)}
+.hm-prof .prog{height:8px}
+@media (max-width:420px){.hm-top{padding:20px 16px 4px}.hm-ring{width:88px;height:88px}.hm-ring>span{width:76px;height:76px}.hm-ring b{font-size:19px}.hm-name h2{font-size:26px;line-height:32px}.hm-stats{padding:14px 0 18px}.hm-stat{padding:0 4px}.hm-stat span{font-size:13px}.hm-foot{padding:14px 16px}.hm-foot-plain{margin:0 16px}.hm-prof{padding:20px 16px 16px;gap:14px}.hm-av{width:52px;height:52px}}
 </style>
 
 </head>
@@ -331,7 +368,7 @@ function navbar(lp){
       r=`<button class="avatar" data-act="menu" aria-expanded="${!!S.menu}" aria-label="Account menu">${esc(ini)}</button>
       ${S.menu?`<div class="menu"><div class="stack" style="gap:2px"><b>${esc(user.displayName||"Signed in")}</b><span class="small muted">${esc(user.email||"")}</span></div>
       <span class="small muted" id="sync">${esc(sync)}</span><button class="btn sm" data-act="signout">Sign out</button></div>`:""}`}
-    else r=`<button class="btn sm" data-act="signin">${lp?"Sign in":"Sign in to save"}</button>`}
+    else r=lp?`<button class="btn sm" data-act="signin">Sign in</button>`:`<button class="avatar" data-act="signin" aria-label="Sign in">${ic("Personality","width:20px;height:20px")}</button>`}
   return `<div class="nav-in pad"><button class="brand" data-act="home">${ic("leaf")}Compatibility Ledger</button><div class="nav-r">${r}</div></div>`}
 
 function ctas(){return `<div class="lp-ctas">${FB?`<button class="btn primary" data-act="signin"><span class="gdot">${GBTN}</span>Continue with Google</button>`:""}
@@ -376,17 +413,19 @@ function landing(){
 }
 
 function home(){const f=AREAS.filter((a,i)=>filled(i)).length;
-  return `<header class="stack"><h1>Your matches</h1><p class="muted">See where you align with each person, and what’s worth talking about.</p></header>
-  ${!FB||user?"":`<div class="card" style="flex-direction:row;align-items:center;flex-wrap:wrap;gap:12px;padding:16px"><span class="lock" style="flex:1 1 220px">${ic("lock")}Your answers are saved on this device only. Sign in to keep them across devices.</span><button class="btn sm" data-act="signin"><span class="gdot" style="width:22px;height:22px">${GBTN}</span>Sign in</button></div>`}
-  <button class="btn primary block" data-act="new">${ic("plus")}Check a new match</button>
+  const stat=(n,l)=>`<div class="hm-stat"><b>${n}</b><span>${l}</span></div>`;
+  return `<header class="stack"><h1 class="hm-h">Your matches</h1><p class="lede">Compare what matters. Find what to discuss.</p></header>
+  ${!FB||user?"":`<div class="hm-sync"><span class="hm-lock">${ic("lock")}</span><div><b>Your matches are saved on this device.</b><span>Sign in to sync across your devices.</span></div><button class="btn sm hm-pill" data-act="signin">Sign in to sync${ic("chev","width:14px;height:14px")}</button></div>`}
+  <button class="btn primary block hm-cta" data-act="new">${ic("plus")}Check a new match</button>
   ${S.matches.length?S.matches.map(m=>{const t=tally(m);
-    return `<button class="card tile" data-act="open" data-id="${m.id}">${ring(t)}
-    <span style="min-width:0;flex:1;display:flex;flex-direction:column;gap:2px"><span style="font:500 20px/28px var(--display)">${esc(m.name)}${m.example?'<span class="tag">Example</span>':""}</span>
-    <span class="small">${summary(t)}</span><span class="small muted">${subline(t)}</span></span>${ic("chev","color:var(--muted)")}</button>`}).join("")
-   :`<div class="card" style="text-align:center;align-items:center"><h3>No matches yet</h3><p class="muted">When you’re ready to think through a prospective match, start a check. It takes a few minutes.</p></div>`}
-  <span class="label" style="margin-top:8px">About me</span>
-  <button class="card tile" data-act="mine"><span class="gtitle"><span class="bub">${ic("Personality")}</span></span><span style="display:flex;flex-direction:column;gap:6px;min-width:0;flex:1"><h3 style="font-size:17px;line-height:24px">My expectations and what I bring</h3>
-  <span class="small muted">${f} of ${N} areas complete</span><span class="prog"><i style="width:${f/N*100}%"></i></span></span>${ic("chev","color:var(--muted)")}</button>`;
+    return `<article class="hm-card"><div class="hm-top"><div class="hm-name"><h2>${esc(m.name)}${m.example?'<span class="tag">Example</span>':""}</h2><p>${t.known?`Aligned in ${t.y} of ${plural(t.known,"area","areas")} you’ve answered`:"You haven’t answered any areas yet"}</p></div>
+      <span class="hm-ring" style="--p:${t.known?t.y/t.known*100:0}" role="img" aria-label="${t.y} of ${t.known} aligned"><span><b>${t.known?t.y+"/"+t.known:"–"}</b><small>aligned</small></span></span></div>
+      <div class="hm-stats">${stat(t.y,"aligned")}${stat(t.t,"to discuss")}${stat(t.n,"different priorities")}${stat(t.u,"unanswered")}</div>
+      <button class="hm-foot" data-act="open" data-id="${m.id}">View compatibility${ic("chev")}</button></article>`}).join("")
+   :`<div class="hm-card" style="padding:24px;text-align:center;align-items:center;gap:8px"><h3>No matches yet</h3><p class="muted">When you’re ready to think through a prospective match, start a check. It takes a few minutes.</p></div>`}
+  <header class="stack" style="margin-top:24px"><h2 class="hm-h2">Your profile</h2><p class="lede">What you’re looking for, and what you bring.</p></header>
+  <article class="hm-card"><div class="hm-prof"><span class="hm-av">${ic("Personality")}</span><div><h3>My expectations &amp; what I bring</h3><span class="muted">${f} of ${N} topics complete</span><span class="prog"><i style="width:${f/N*100}%"></i></span></div></div>
+  <button class="hm-foot hm-foot-plain" data-act="mine">${f?(f===N?"Review profile":"Continue profile"):"Start profile"}${ic("chev")}</button></article>`;
 }
 
 function pills(i,s){const a=AREAS[i],m=S.mine[i],opts=s==="w"?a.w:a.b,open=m[s+"open"]||m[s+"o"];
