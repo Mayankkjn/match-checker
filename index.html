@@ -186,10 +186,10 @@ textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px;b
 .hm-h{font-size:40px;line-height:48px}
 @media (min-width:768px){.hm-h{font-size:48px;line-height:56px}}
 .hm-h2{font-size:30px;line-height:38px}
-.hm-sync{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.hm-sync{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 14px 14px 16px}
 .hm-sync .hm-lock .ico{width:24px;height:24px;color:var(--ink)}
 .hm-sync>div{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px}
-.hm-sync b{font:500 15px/22px var(--body)} .hm-sync span{font-size:14px;color:var(--muted)}
+.hm-sync b{font:500 14px/20px var(--body)} .hm-sync span{font-size:13px;line-height:18px;color:var(--muted)}
 .hm-pill{white-space:nowrap;flex:none;padding-inline:14px;border-radius:999px;border-color:var(--accent);color:var(--accent);background:var(--surface);gap:4px}
 .hm-cta{min-height:56px;font-size:17px;border-radius:14px}
 .hm-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
@@ -415,7 +415,7 @@ function landing(){
 function home(){const f=AREAS.filter((a,i)=>filled(i)).length;
   const stat=(n,l)=>`<div class="hm-stat"><b>${n}</b><span>${l}</span></div>`;
   return `<header class="stack"><h1 class="hm-h">Your matches</h1><p class="lede">Compare what matters. Find what to discuss.</p></header>
-  ${!FB||user?"":`<div class="hm-sync"><span class="hm-lock">${ic("lock")}</span><div><b>Your matches are saved on this device.</b><span>Sign in to sync across your devices.</span></div><button class="btn sm hm-pill" data-act="signin">Sign in to sync${ic("chev","width:14px;height:14px")}</button></div>`}
+  ${!FB||user?"":`<div class="hm-sync"><span class="hm-lock">${ic("lock")}</span><div><b>Saved on this device only</b><span>Sign in to sync across devices.</span></div><button class="btn sm hm-pill" data-act="signin">Sign in to sync${ic("chev","width:14px;height:14px")}</button></div>`}
   <button class="btn primary block hm-cta" data-act="new">${ic("plus")}Check a new match</button>
   ${S.matches.length?S.matches.map(m=>{const t=tally(m);
     return `<article class="hm-card"><div class="hm-top"><div class="hm-name"><h2>${esc(m.name)}${m.example?'<span class="tag">Example</span>':""}</h2><p>${t.known?`Aligned in ${t.y} of ${plural(t.known,"area","areas")} you’ve answered`:"You haven’t answered any areas yet"}</p></div>
